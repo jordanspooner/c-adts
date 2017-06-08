@@ -15,15 +15,6 @@ struct list_elem {
 
 typedef struct list_elem* list_iter;
 
-struct list_elem *list_alloc_elem(void) {
-  struct list_elem *elem = malloc(sizeof(struct list_elem));
-  if (elem == NULL) {
-    perror("list_alloc_elem");
-    exit(EXIT_FAILURE);
-  }
-  return elem;
-}
-
 struct list_elem *list_alloc_elem(void);
 void list_free_elem(struct list_elem *elem);
 void list_init(struct list *l);
@@ -35,8 +26,18 @@ int list_iter_value(list_iter iter);
 int list_is_internal(list_iter iter);
 void list_insert_front(struct list *l, int value);
 void list_insert_back(struct list *l, int value);
+list_iter list_drop(int n, list_iter head);
 void list_destroy(struct list *l);
 int main(void);
+
+struct list_elem *list_alloc_elem(void) {
+  struct list_elem *elem = malloc(sizeof(struct list_elem));
+  if (elem == NULL) {
+    perror("list_alloc_elem");
+    exit(EXIT_FAILURE);
+  }
+  return elem;
+}
 
 void list_free_elem(struct list_elem *elem) {
   free(elem);
@@ -98,6 +99,20 @@ void list_destroy(struct list *l) {
   }
 }
 
+list_iter list_drop(int n, list_iter head) {
+  list_iter current = head->next;
+  int index = 1;
+  while(index < n) {
+    current = current->next;
+    list_free_elem(current->prev);
+    index++;
+  }
+  head->value = current->value;
+  head->next = current->next;
+  list_free_elem(current);
+  return head;
+}
+
 int main(void) {
   struct list l;
   list_init(&l);
@@ -107,6 +122,7 @@ int main(void) {
   list_insert_back(&l, 1);
   list_insert_back(&l, 2);
 
+  list_drop(2, list_begin(&l));
   for(list_iter iter = list_begin(&l);
       iter != list_end(&l);
       iter = list_iter_next(iter)) {
