@@ -23,7 +23,7 @@ void bst_insert(struct bst *handle, void *value);
 struct bst_elem *bst_insert_elem(struct bst_elem *const elem,
   bst_compare_t compare, void *value);
 void bst_delete(struct bst *handle, void *value);
-struct bst_elem *bst_delete_elem(struct bst_elem *const elem,
+struct bst_elem *bst_delete_elem(struct bst_elem *elem,
   bst_compare_t compare, void *value);
 struct bst_elem *bst_sift_down_right(struct bst_elem *root, 
   struct bst_elem *right);
@@ -82,7 +82,7 @@ void bst_delete(struct bst *handle, void *value) {
   handle->tree = bst_delete_elem(handle->tree, handle->compare, value);
 }
 
-struct bst_elem *bst_delete_elem(struct bst_elem *const elem,
+struct bst_elem *bst_delete_elem(struct bst_elem *elem,
   bst_compare_t compare, void *value) {
   if (elem != NULL) {
     printf("Currently checking: %s\n", (char *)elem->value);
@@ -95,21 +95,21 @@ struct bst_elem *bst_delete_elem(struct bst_elem *const elem,
         return NULL;
       } else if (elem->left == NULL) {
         printf("Replacing right child.\n");
-        struct bst_elem *right = elem->right;
-        memcpy(elem, right, sizeof(struct bst_elem));
-        bst_free_elem(right);
+        struct bst_elem *to_free = elem;
+        elem = elem->right;
+        free(to_free);
       } else if (elem->right == NULL) {
         printf("Replacing left child.\n");
-        struct bst_elem *left = elem->left;
-        memcpy(elem, left, sizeof(struct bst_elem));
-        bst_free_elem(left);
+        struct bst_elem *to_free = elem;
+        elem = elem->left;
+        free(to_free);
       } else {
         printf("Sifting down and replacing.\n");
-        struct bst_elem *left = elem->left;
+        struct bst_elem *to_free = elem;
         struct bst_elem *right = elem->right;
-        memcpy(elem, left, sizeof(struct bst_elem));
-        bst_sift_down_right(left, right);
-        bst_free_elem(left);
+        elem = elem->left;
+        bst_sift_down_right(elem, right);
+        bst_free_elem(to_free);
       }
     } else if (comparison < 0) {
       printf("Trying left child...\n");
